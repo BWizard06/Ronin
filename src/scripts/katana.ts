@@ -14,12 +14,14 @@ import { createCulturalWorld } from './cultural-world';
 import { cultureTarget, gestureIntent, turnCulture } from './culture-interaction.mjs';
 import { loadSceneAsset, PROP_URLS, resources, releaseRetired, replaceChildren } from './scene-assets';
 import { portraitLayout, renderPixelRatio } from './viewport-layout.mjs';
+import { createRendererSize } from './renderer-size.mjs';
 
 export type ViewFrame = ReturnType<typeof sampleMotion> & { inspection: number; history: number; culture: number; materials:number; bridge:number; cultureProgress?: number; bridgeProgress?:number; cultureTarget?:string };
 
 type AssetTask = 'katana' | 'saya' | 'torii' | 'sakura' | 'scene';
 export function createKatanaView(element: HTMLElement, onFrame: (frame: ViewFrame, anchors: ProjectedAnchors) => void, onProgress: (task: AssetTask, fraction: number) => void = () => {}) {
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+  const renderSize = createRendererSize(renderer);
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -121,6 +123,12 @@ export function createKatanaView(element: HTMLElement, onFrame: (frame: ViewFram
   function render(time: number) {
     frameId = 0;
     if (disposed || (!visible && initialSettled) || document.hidden || contextLost) return;
+    // Resizing clears the drawing buffer. Commit it here, immediately before
+    // drawing, never in ResizeObserver after the browser has rendered a frame.
+    const size = renderSize.apply();
+    if (!size) return;
+    width = size.width; height = size.height; mobile = portraitLayout(width, height);
+    renderer.transmissionResolutionScale = coarsePointer.matches || mobile ? .5 : .75;
     const dt = Math.min((time - last) / 1000, .05) || .016; last = time;
     const ease = reduced ? 1 : 1 - Math.exp(-dt * 11);
     let moving = false;
@@ -190,14 +198,13 @@ export function createKatanaView(element: HTMLElement, onFrame: (frame: ViewFram
   }
   function wake() { if (!frameId && (visible || !initialSettled) && !document.hidden && !disposed && !contextLost) { last = performance.now(); frameId = requestAnimationFrame(render); } }
   function resize() {
-    const bounds = element.getBoundingClientRect(); if (bounds.width < 1 || bounds.height < 1) return;
-    width = bounds.width; height = bounds.height; mobile = portraitLayout(width,height);
-    const ratio=renderPixelRatio(width,height,window.devicePixelRatio,coarsePointer.matches || mobile);
-    if(renderer.getPixelRatio()!==ratio)renderer.setPixelRatio(ratio);
-    renderer.transmissionResolutionScale = coarsePointer.matches || mobile ? .5 : .75;
-    renderer.setSize(width, height, false); wake();
+    const bounds = element.getBoundingClientRect();
+    const compact = portraitLayout(bounds.width, bounds.height);
+    const ratio = renderPixelRatio(bounds.width, bounds.height, window.devicePixelRatio, coarsePointer.matches || compact);
+    if (renderSize.request(bounds.width, bounds.height, ratio)) wake();
   }
   const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(element);
+  window.addEventListener('resize', resize, { passive: true });
   const visibility = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) wake(); else { cancelAnimationFrame(frameId); frameId = 0; } }); visibility.observe(element);
   const onVisibility = () => { if (document.hidden) { cancelAnimationFrame(frameId); frameId = 0; } else wake(); };
   document.addEventListener('visibilitychange', onVisibility);
@@ -297,7 +304,7 @@ export function createKatanaView(element: HTMLElement, onFrame: (frame: ViewFram
     setLight(value: number) { state.light = clamp(value, -1, 1); wake(); },
     setReducedMotion(value: boolean) { reduced = value; if (reduced) { state.pointerX = 0; state.pointerY = 0; } wake(); }, reset, cultureAction,
     dispose() {
-      disposed = true; assetRequest.abort(); rejectLoaded(new DOMException('View disposed', 'AbortError')); cancelAnimationFrame(frameId); stopDrag(); resizeObserver.disconnect(); visibility.disconnect(); document.removeEventListener('visibilitychange', onVisibility);
+      disposed = true; assetRequest.abort(); rejectLoaded(new DOMException('View disposed', 'AbortError')); cancelAnimationFrame(frameId); stopDrag(); resizeObserver.disconnect(); window.removeEventListener('resize', resize); visibility.disconnect(); document.removeEventListener('visibilitychange', onVisibility);
       element.removeEventListener('pointerdown', onDown); element.removeEventListener('pointermove', onMove); element.removeEventListener('pointerup', onUp); element.removeEventListener('pointercancel', stopDrag);
       element.removeEventListener('lostpointercapture', stopDrag); element.removeEventListener('pointerleave', onLeave); element.removeEventListener('keydown', onKey);
       renderer.domElement.removeEventListener('webglcontextlost', onLost); renderer.domElement.removeEventListener('webglcontextrestored', onRestored);
