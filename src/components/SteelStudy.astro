@@ -1,0 +1,26 @@
+---
+import { steels } from '../data/experience';
+---
+<section class="content-stop steel-study" id="steel-study" data-from=".455" data-to=".455" data-mode="materials" aria-labelledby="steel-title" data-steel="0">
+  <div class="content-inner steel-inner">
+    <div class="steel-heading"><h2 id="steel-title">Strength<br /><em>has layers.</em></h2><p>A closer look inside the blade.</p></div>
+    <div class="steel-diagram" aria-hidden="true">
+      <svg viewBox="0 0 600 480" fill="none">
+        <defs>
+          <linearGradient id="steel-skin" x1="120" y1="100" x2="470" y2="370" gradientUnits="userSpaceOnUse"><stop stop-color="#f1eee2"/><stop offset=".42" stop-color="#839696"/><stop offset=".49" stop-color="#e8eadf"/><stop offset="1" stop-color="#394d50"/></linearGradient>
+          <linearGradient id="steel-core" x1="190" y1="140" x2="400" y2="350" gradientUnits="userSpaceOnUse"><stop stop-color="#b14935"/><stop offset="1" stop-color="#632d27"/></linearGradient>
+          <pattern id="steel-grain" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M0 7H14" stroke="#f4ecda" stroke-opacity=".18"/></pattern>
+        </defs>
+        <g class="raw-steel"><path d="M135 173L215 101L355 116L454 190L422 317L298 364L160 308Z" fill="url(#steel-skin)"/><path d="M135 173L268 221L215 101M268 221L355 116M268 221L454 190M268 221L298 364M268 221L160 308M268 221L422 317" stroke="#d7ded2" stroke-opacity=".5"/><path d="M178 204L218 237L188 276M300 155L324 181L366 159M342 273L391 238" stroke="#233739" stroke-width="8" opacity=".6"/></g>
+        <g class="blade-section"><path class="outer-steel" d="M300 70L414 172L394 322L300 412L206 322L186 172Z" fill="url(#steel-skin)"/><path class="inner-steel" d="M300 123L365 183L350 286Q300 348 250 286L235 183Z" fill="url(#steel-core)"/><path d="M300 123L365 183L350 286Q300 348 250 286L235 183Z" fill="url(#steel-grain)"/><path d="M300 70V95M300 386V412" stroke="#f7f1e1" stroke-width="2"/><path class="skin-pointer" d="M401 235H514" stroke="#e6e5d9"/><circle class="skin-pointer" cx="401" cy="235" r="4" fill="#e6e5d9"/><path class="core-pointer" d="M280 226H100" stroke="#ed795b"/><circle class="core-pointer" cx="280" cy="226" r="4" fill="#ed795b"/></g>
+      </svg>
+      <p class="diagram-note"><span class="raw-caption">Selected steel before forging.</span><span class="section-caption">Schematic cross section. One traditional arrangement.</span></p>
+    </div>
+    <div class="steel-copy content-interactive">
+      <div class="steel-tabs" role="tablist" aria-label="Steel and its roles">{steels.map((steel,i)=><button type="button" role="tab" id={`steel-tab-${i}`} data-steel-tab={i} aria-controls={`steel-panel-${i}`} aria-selected={i===0} tabindex={i===0?0:-1}>{steel.name}</button>)}</div>
+      <div class="steel-panels">{steels.map((steel,i)=><article id={`steel-panel-${i}`} class:list={['steel-panel',{'is-selected':i===0}]} role="tabpanel" aria-labelledby={`steel-tab-${i}`} tabindex="0"><span class="steel-kanji" lang="ja" aria-hidden="true">{steel.kanji}</span><h3>{steel.role}</h3><p>{steel.body}</p><p class="steel-note">{steel.note}</p></article>)}</div>
+      <p class="steel-context">An explanation of traditional materials. Construction varies between blades.</p>
+      <a class="source-link" href="https://www.metmuseum.org/essays/the-japanese-blade-technology-and-manufacture" target="_blank" rel="noopener noreferrer">The Metropolitan Museum of Art ↗</a>
+    </div>
+  </div>
+</section>

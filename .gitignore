@@ -1,0 +1,35 @@
+# Dependencies and generated output
+node_modules/
+dist/
+.astro/
+coverage/
+test-results/
+playwright-report/
+
+# Private references, source models and local authoring work
+references/
+.work/
+*.blend
+*.blend[0-9]*
+
+# Local tools and assistant session data
+.openai/
+.codex/
+.claude/
+.agents/
+:memory:*
+
+# Credentials and local deployment state
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.wrangler/
+
+# Logs, editor state and operating-system files
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.tsbuildinfo

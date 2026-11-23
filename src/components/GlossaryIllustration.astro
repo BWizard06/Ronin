@@ -1,0 +1,105 @@
+---
+interface Props { term:string }
+const {term}=Astro.props;
+const labels:Record<string,string>={
+  Katana:'A katana with its cutting edge facing up',Tachi:'A suspended tachi with its cutting edge facing down',
+  Tsuka:'Crossed wrapping around the sword grip',Tsuba:'A decorated guard viewed from the front',
+  Saya:'A curved scabbard with its cord',Hamon:'The hardening pattern along the blade edge',
+  Tamahagane:'An irregular piece of steel before forging',Kawagane:'The outer steel highlighted in a schematic blade cross section',
+  Shingane:'The inner core highlighted in the same blade cross section',Kissaki:'The point of the blade highlighted',
+  Nakago:'The tang that fits inside the grip',Sugata:'The complete blade profile and its curvature',
+  Torii:'The paired pillars and curved lintel of a torii gate',Sakura:'Cherry blossoms growing on a branch',
+};
+const blade='M114 130Q265 138 408 65Q395 96 365 111Q258 160 114 148Z';
+const outer='M225 20L290 77L279 153L225 196L171 153L160 77Z';
+const core='M225 48L262 83L254 135Q225 170 196 135L188 83Z';
+---
+<svg class="glossary-illustration" viewBox="0 0 450 220" fill="none" role="img" aria-label={labels[term]}>
+  {(term==='Katana'||term==='Tachi')&&<g transform={term==='Katana'?'translate(0 226) scale(1 -1)':undefined}>
+    <path class="diagram-surface" d={blade}/>
+    <path class="diagram-accent diagram-trace" pathLength="1" d="M114 148Q258 160 365 111Q395 96 408 65"/>
+    <path d="M111 119V160M105 120V158M47 127L103 130V149L46 146Z"/>
+    {[0,1,2,3].map(i=><path d={`M${49+i*13} 129l11 18m-10-1 12-16`}/>)}
+    {term==='Tachi'&&<g class="diagram-accent"><path d="M163 130V99m93 20V88M151 130h24m69-11h24"/><circle cx="163" cy="91" r="8"/><circle cx="256" cy="80" r="8"/></g>}
+  </g>}
+
+  {term==='Tsuka'&&<g transform="rotate(-8 225 110)">
+    <path class="diagram-surface" d="M58 86Q167 80 318 87L318 137Q165 129 58 136Z"/>
+    <path d="M64 86V136M310 87V136M323 69V152M331 69V152M334 91H401M334 130H401"/>
+    {[0,1,2,3,4,5,6].map(i=><path class="diagram-accent" d={`M${74+i*32} 88l29 45m-29 0 29-45`}/>)}
+    <path class="diagram-muted" d="M58 111H313" stroke-dasharray="3 6"/>
+  </g>}
+
+  {term==='Tsuba'&&<g transform="translate(225 110)">
+    <path class="diagram-surface" d="M0-88C51-91 82-54 82 0S49 88 0 88S-82 53-82 0S-51-91 0-88Z"/>
+    <ellipse rx="71" ry="76"/><path d="M-8-45h15l7 88h-27Z"/>
+    <path class="diagram-accent diagram-trace" pathLength="1" d="M-61 18Q-47-24-24-19Q-38-11-34 6Q-24 28-13 31M19 44Q37 18 54 29Q42 32 45 45M20-48Q40-67 54-38Q37-49 28-28M-59 40Q-35 23-18 49M19 58Q49 65 62 40"/>
+    <path class="diagram-muted" d="M-90 0h-14M90 0h14M0-96v-10M0 96v10"/>
+  </g>}
+
+  {term==='Saya'&&<g transform="rotate(-8 225 110)">
+    <path class="diagram-surface" d="M53 105Q231 135 387 78Q410 72 408 84Q401 107 383 114Q220 165 53 137Z"/>
+    <path d="M53 105Q48 121 53 137M63 107V138M93 113V141M103 115V143"/>
+    <path class="diagram-accent diagram-trace" pathLength="1" d="M128 128Q168 149 201 129Q190 123 180 131Q199 115 225 127Q244 139 265 119"/>
+    <path class="diagram-accent" d="M92 116Q65 76 77 68Q97 62 100 118Q109 76 123 80Q139 91 102 122M101 130Q124 153 128 182M94 130Q70 156 78 181"/>
+  </g>}
+
+  {term==='Hamon'&&<g transform="rotate(-9 225 110)">
+    <path class="diagram-surface" d="M40 66Q225 103 410 66V132Q225 170 40 132Z"/>
+    <path class="diagram-muted" d="M40 88Q225 124 410 88"/>
+    <path class="diagram-accent diagram-trace" pathLength="1" d="M41 119Q57 128 71 117Q88 105 99 122Q115 139 130 122Q145 103 159 125Q173 144 189 128Q203 115 218 131Q233 146 247 127Q263 105 276 125Q289 137 307 119Q320 101 335 119Q351 130 367 112Q381 95 395 110L409 116"/>
+  </g>}
+
+  {term==='Tamahagane'&&<g>
+    <path class="diagram-surface" d="M119 75L175 33L272 42L332 91L315 162L232 191L133 155Z"/>
+    <path d="M119 75L211 106L175 33M211 106L272 42M211 106L332 91M211 106L232 191M211 106L133 155M211 106L315 162"/>
+    <path class="diagram-accent" d="M148 93l24 24-19 20M245 61l16 17 28-13M254 143l37-23M179 157l18 10"/>
+    <path class="diagram-muted" d="m105 157-14 12 12 12 16-8Zm228-8 13 7-8 14-16-4Z"/>
+  </g>}
+
+  {(term==='Kawagane'||term==='Shingane')&&<g>
+    <path class:list={['diagram-surface',{'diagram-selected':term==='Kawagane'}]} d={outer}/>
+    <path class:list={['diagram-core',{'diagram-selected':term==='Shingane'}]} d={core}/>
+    <path class="diagram-muted" d="M225 20V4M225 196v20"/>
+    {term==='Kawagane'?<g class="diagram-accent"><path d="M282 111H367"/><circle cx="282" cy="111" r="3"/></g>:<g class="diagram-accent"><path d="M219 107H87"/><circle cx="219" cy="107" r="3"/></g>}
+  </g>}
+
+  {term==='Kissaki'&&<g>
+    <path class="diagram-surface" d="M33 121Q197 138 411 52Q382 124 318 142Q191 177 33 159"/>
+    <path class="diagram-selected" d="M320 85Q370 70 411 52Q382 124 318 142Z"/>
+    <path d="M320 85L318 142"/><path class="diagram-muted" d="M33 143Q186 157 310 128"/>
+    <path class="diagram-accent" d="M369 96l22 60h28"/>
+  </g>}
+
+  {term==='Nakago'&&<g transform="rotate(-7 225 110)">
+    <path class="diagram-selected" d="M55 100Q111 94 192 98V136Q112 136 55 122Z"/>
+    <circle cx="120" cy="113" r="5"/><path d="M192 98V87Q300 97 404 59M192 136V147Q303 158 411 92"/>
+    <path class="diagram-muted" d="M45 84Q115 80 184 84V150Q111 148 45 142Z" stroke-dasharray="4 6"/>
+    <path class="diagram-accent" d="M112 120l-23 56H52"/>
+  </g>}
+
+  {term==='Sugata'&&<g>
+    <path class="diagram-surface" d={blade}/>
+    <path d="M114 130L63 126V144L114 148"/>
+    <path class="diagram-muted" d="M114 130L408 65M114 123V183M408 58V125" stroke-dasharray="3 5"/>
+    <path class="diagram-accent diagram-trace" pathLength="1" d="M114 174Q265 182 408 109"/>
+    <path class="diagram-accent" d="m109 170 5 4-5 4m294-72 5 3-1 6M255 99v28m-4-23 4-5 4 5m-8 18 4 5 4-5"/>
+  </g>}
+
+  {term==='Torii'&&<g>
+    <path class="diagram-surface" d="M97 31Q225 57 353 31L347 45Q225 69 103 45Z"/>
+    <path class="diagram-accent" d="M111 49Q225 70 339 49L336 61Q225 79 114 61ZM152 68L140 194h15l12-125M283 69l12 125h15L298 68M131 92H319v11H131ZM219 73v19h12V73"/>
+    <path d="m140 194 8 6h16l-9-6m140 0 9 6h16l-10-6M307 108l10 86"/>
+    <path class="diagram-muted" d="M111 202H339"/>
+  </g>}
+
+  {term==='Sakura'&&<g>
+    <path d="M69 186Q170 159 222 85Q254 47 319 27M147 151Q178 89 151 52M201 111Q255 124 314 86M239 66Q283 80 349 55" stroke-width="3"/>
+    <path class="diagram-muted" d="M163 142Q209 151 254 173M295 93l24-43"/>
+    {[[151,52,1],[222,85,1.15],[314,86,1],[319,27,.7],[349,55,.75],[254,173,.7]].map(([x,y,scale])=><g transform={`translate(${x} ${y}) scale(${scale})`}>
+      {[0,1,2,3,4].map(p=><path class="diagram-blossom" transform={`rotate(${p*72})`} d="M0 0C-12-7-19-20-8-26L0-21L8-26C19-20 12-7 0 0Z"/>)}
+      <circle class="diagram-accent" r="3"/>
+    </g>)}
+    <path class="diagram-accent" d="M334 158q15-18 19-4q-2 11-19 4Zm-211-37q-16-13-18 1q5 10 18-1Z"/>
+  </g>}
+</svg>

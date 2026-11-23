@@ -1,0 +1,107 @@
+---
+import '../styles/loading.css';
+---
+<div class="initial-loader" data-initial-loader>
+  <div class="loader-shutter loader-shutter-top" aria-hidden="true"></div>
+  <div class="loader-shutter loader-shutter-bottom" aria-hidden="true"></div>
+  <div class="loader-composition">
+    <div class="loader-wordmark" aria-hidden="true">
+      <span class="loader-wordmark-top">RŌNIN</span>
+      <span class="loader-wordmark-bottom">RŌNIN</span>
+    </div>
+    <div class="loader-progress" role="progressbar" aria-label="Loading the experience" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <svg class="loader-blade" viewBox="0 0 1000 230" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="loader-steel" x1="70" y1="168" x2="951" y2="41" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#29332e"/><stop offset=".38" stop-color="#89948b"/><stop offset=".64" stop-color="#d9ddd2"/><stop offset="1" stop-color="#414c45"/>
+          </linearGradient>
+          <linearGradient id="loader-glint">
+            <stop stop-color="#fff7df" stop-opacity="0"/><stop offset=".48" stop-color="#fff7df" stop-opacity=".35"/><stop offset=".51" stop-color="#ffffff"/><stop offset="1" stop-color="#fff7df" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="loader-blade-clip"><path d="M70 151C365 167 706 145 906 64L951 41L929 78C734 158 358 180 70 168Z"/></clipPath>
+        </defs>
+        <path class="loader-blade-surface" d="M70 151C365 167 706 145 906 64L951 41L929 78C734 158 358 180 70 168Z" fill="url(#loader-steel)"/>
+        <path class="loader-blade-spine" pathLength="100" d="M70 151C365 167 706 145 906 64L951 41L929 78C734 158 358 180 70 168Z"/>
+        <g clip-path="url(#loader-blade-clip)"><rect class="loader-glint" x="-180" y="0" width="180" height="230" fill="url(#loader-glint)"/></g>
+        <path class="loader-blade-edge" pathLength="100" d="M70 168C358 180 734 158 929 78L951 41"/>
+        <path class="loader-blade-fill" data-loader-fill pathLength="100" d="M70 168C358 180 734 158 929 78L951 41"/>
+      </svg>
+      <span class="loader-value" aria-hidden="true"><span data-loader-value>00</span><small>%</small></span>
+    </div>
+    <p class="loader-status" role="status" aria-live="polite" data-loader-status>Preparing the experience</p>
+    <div class="loader-actions" hidden>
+      <button type="button" data-loader-retry>Try again <span aria-hidden="true">↗</span></button>
+      <button type="button" data-loader-continue>Continue with preview</button>
+    </div>
+  </div>
+</div>
+<!-- Independent of the 3D bundle: even a failed module request has an exit. -->
+<script is:inline>
+  (() => {
+    const root = document.documentElement;
+    const screen = document.querySelector('[data-initial-loader]');
+    const bar = screen.querySelector('[role="progressbar"]');
+    const fill = screen.querySelector('[data-loader-fill]');
+    const value = screen.querySelector('[data-loader-value]');
+    const status = screen.querySelector('[data-loader-status]');
+    const actions = screen.querySelector('.loader-actions');
+    const controller = new AbortController();
+    const options = { signal: controller.signal };
+    const locked = new Map();
+    const startedAt = performance.now();
+    const minimumIntro = 3200;
+    let finished = false, exiting = false, assetsReady = false, exitTimer, introTimer;
+    root.dataset.loadState = 'loading';
+    function lock() {
+      if (finished) return;
+      for (const node of document.body.children) {
+        if (node === screen || !(node instanceof HTMLElement) || node.tagName === 'SCRIPT') continue;
+        locked.set(node, node.inert); node.inert = true;
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lock, { ...options, once: true });
+    else lock();
+    function release() {
+      finished = true; clearTimeout(watchdog); clearTimeout(exitTimer); clearTimeout(introTimer);
+      const hadFocus = screen.contains(document.activeElement);
+      locked.forEach((inert, node) => { node.inert = inert; }); locked.clear();
+      delete root.dataset.loadState; screen.hidden = true; controller.abort();
+      if (hadFocus) document.querySelector('.skip-link')?.focus({ preventScroll: true });
+      window.dispatchEvent(new Event('ronin:loading-dismissed'));
+    }
+    function showProblem(message) {
+      if (finished || assetsReady) return;
+      clearTimeout(watchdog); root.dataset.loadState = 'error';
+      status.textContent = message; actions.hidden = false;
+    }
+    const watchdog = setTimeout(() => showProblem('Taking a little longer than expected.'), 45000);
+    window.addEventListener('ronin:load-progress', event => {
+      if (finished || assetsReady) return;
+      const percent = Math.min(99, Math.max(0, Math.floor(event.detail)));
+      bar.setAttribute('aria-valuenow', String(percent));
+      value.textContent = String(percent).padStart(2, '0');
+      fill.style.strokeDashoffset = String(100 - percent);
+    }, options);
+    window.addEventListener('ronin:load-error', () => showProblem('Some assets could not load.'), options);
+    window.addEventListener('ronin:load-ready', () => {
+      if (finished || assetsReady) return;
+      assetsReady = true; clearTimeout(watchdog);
+      value.textContent = '100'; bar.setAttribute('aria-valuenow', '100');
+      fill.style.strokeDashoffset = '0'; status.textContent = 'Ready'; actions.hidden = true;
+      root.dataset.loadState = 'loaded';
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function reveal() {
+        if (finished || exiting) return;
+        exiting = true; root.dataset.loadState = 'ready';
+        exitTimer = setTimeout(release, reduce ? 0 : 900);
+      }
+      const remaining = reduce ? 0 : Math.max(0, minimumIntro - (performance.now() - startedAt));
+      if (remaining) introTimer = setTimeout(reveal, remaining);
+      else reveal();
+    }, options);
+    screen.querySelector('[data-loader-retry]').addEventListener('click', () => location.reload(), options);
+    screen.querySelector('[data-loader-continue]').addEventListener('click', release, options);
+    window.addEventListener('ronin:load-cancel', release, options);
+    window.addEventListener('pagehide', event => { if (!event.persisted) release(); }, options);
+  })();
+</script>

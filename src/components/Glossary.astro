@@ -1,0 +1,44 @@
+---
+import { details, steels } from '../data/experience';
+import GlossaryIllustration from './GlossaryIllustration.astro';
+const terms = [
+  ['Katana', 'The sword', 'A Japanese sword worn through the sash with its cutting edge facing up.'],
+  ['Tachi', 'The sword', 'An earlier type of Japanese sword, suspended from the waist with its edge facing down.'],
+  ['Tsuka', 'The fittings', 'The grip of the sword. The wrapping and the material beneath it form separate layers.'],
+  ['Tsuba', 'The fittings', 'The guard between the grip and blade. A small fitting that can carry an elaborate design.'],
+  ['Saya', 'The fittings', 'The scabbard that covers and protects the blade.'],
+  ['Hamon', 'The craft', 'The visible pattern along the hardened cutting edge. It emerges from the hardening process.'],
+  ['Tamahagane', 'The craft', 'Steel produced by traditional tatara smelting. Pieces are selected for their material properties.'],
+  ['Kawagane', 'The craft', 'The harder outer steel in a composite blade construction.'],
+  ['Shingane', 'The craft', 'The softer steel used for the inner core in that construction.'],
+  ['Kissaki', 'The blade', 'The point area of the blade.'],
+  ['Nakago', 'The blade', 'The tang: the part of the blade that sits inside the grip.'],
+  ['Sugata', 'The blade', 'The overall shape and proportions of a blade.'],
+  ['Torii', 'The landscape', 'A gate marking the entrance to the sacred space of a Shinto shrine.'],
+  ['Sakura', 'The landscape', 'Cherry blossom. Hanami is the practice of flower viewing.'],
+];
+const characters = new Map([...details, ...steels].map(term => [term.name, term.kanji]));
+const number = (i:number) => String(i + 1).padStart(2,'0');
+---
+<button class="glossary-open" type="button" aria-haspopup="dialog" aria-controls="glossary">Glossary <span aria-hidden="true">＋</span></button>
+<dialog class="glossary" id="glossary" aria-labelledby="glossary-title">
+  <div class="glossary-shell">
+    <header class="glossary-heading">
+      <div><span class="glossary-eyebrow">RŌNIN <span aria-hidden="true">/</span> Glossary</span><h2 id="glossary-title">Words behind <em>the form.</em></h2></div>
+      <button type="button" class="glossary-close" aria-label="Close glossary" autofocus><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
+    </header>
+    <div class="glossary-workspace">
+      <div class="glossary-index" role="tablist" aria-label="Glossary terms" aria-orientation="vertical">
+        {terms.map(([term],i) => <button type="button" id={`word-${i}`} role="tab" aria-controls={`word-definition-${i}`} aria-selected={i===0?'true':'false'} tabindex={i===0?0:-1} data-word={i}><span class="word-number" aria-hidden="true">{number(i)}</span><span>{term}</span><span class="word-arrow" aria-hidden="true">↗</span></button>)}
+      </div>
+      <div class="glossary-definitions">
+        {terms.map(([term,category,meaning],i) => <section class="glossary-entry" id={`word-definition-${i}`} role="tabpanel" aria-labelledby={`word-${i}`} tabindex="0" hidden={i!==0}>
+          <div class="word-art"><span aria-hidden="true" class:list={['word-character',{'is-number':!characters.has(term)}]} lang={characters.has(term)?'ja':undefined}>{characters.get(term)??number(i)}</span><GlossaryIllustration term={term}/></div>
+          <div class="word-definition"><p class="word-category">{category}</p><h3>{term}</h3><p class="word-meaning">{meaning}</p></div>
+          <span class="word-page" aria-hidden="true">{number(i)} <span>/ {terms.length}</span></span>
+        </section>)}
+      </div>
+    </div>
+    <footer class="glossary-sources"><a href="https://www.kyohaku.go.jp/eng/learn/assets/guides/2018_katana_intro_eng_0929.pdf" target="_blank" rel="noopener noreferrer">Kyoto National Museum <span aria-hidden="true">↗</span></a><a href="#history" data-glossary-history>Explore the timeline <span aria-hidden="true">↗</span></a></footer>
+  </div>
+</dialog>
